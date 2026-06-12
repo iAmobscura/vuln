@@ -1,0 +1,796 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OBSCURA // Ethical Hacking Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ---------- RESET ---------- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;overflow:hidden;background:#04050a;color:#e6f7ff;font-family:'Space Mono',monospace;-webkit-font-smoothing:antialiased}
+::selection{background:#00ffd1;color:#04050a}
+:root{
+  --bg:#04050a;
+  --bg-2:#0a0d18;
+  --ink:#e6f7ff;
+  --ink-dim:#7c8aa1;
+  --cyan:#00ffd1;
+  --magenta:#ff2a6d;
+  --violet:#7a5cff;
+  --glass:rgba(255,255,255,0.06);
+  --glass-strong:rgba(255,255,255,0.10);
+  --stroke:rgba(255,255,255,0.14);
+  --stroke-soft:rgba(255,255,255,0.07);
+}
+
+/* ---------- BACKGROUND LAYER ---------- */
+.bg-stack{position:fixed;inset:0;z-index:0;overflow:hidden;background:radial-gradient(ellipse at 20% 10%, #0c1226 0%, #04050a 60%);}
+.matrix{position:absolute;inset:0;width:100%;height:100%;opacity:.35;mix-blend-mode:screen}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;animation:floatBlob 14s ease-in-out infinite}
+.blob.b1{width:520px;height:520px;background:#00ffd1;top:-160px;left:-120px;animation-delay:0s}
+.blob.b2{width:480px;height:480px;background:#ff2a6d;bottom:-180px;right:-140px;animation-delay:-5s}
+.blob.b3{width:380px;height:380px;background:#7a5cff;top:40%;left:55%;animation-delay:-9s;opacity:.4}
+@keyframes floatBlob{
+  0%,100%{transform:translate(0,0) scale(1)}
+  33%{transform:translate(40px,-30px) scale(1.08)}
+  66%{transform:translate(-30px,40px) scale(.95)}
+}
+.grain{position:absolute;inset:0;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");opacity:.5;pointer-events:none;mix-blend-mode:overlay}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(255,255,255,0) 0,rgba(255,255,255,0) 3px,rgba(0,255,209,0.025) 3px,rgba(0,255,209,0.025) 4px);pointer-events:none}
+
+/* ---------- SCENES ---------- */
+.scene{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1),filter .9s ease}
+.scene.hidden{opacity:0;pointer-events:none;transform:scale(1.04);filter:blur(14px)}
+.scene.enter-anim{opacity:0;transform:scale(.96);filter:blur(10px)}
+
+/* ---------- GLASS CARD ---------- */
+.glass{
+  background:linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+  border:1px solid var(--stroke);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 0 40px rgba(0,255,209,0.04),
+    0 30px 60px -20px rgba(0,0,0,0.6),
+    0 18px 30px -10px rgba(0,0,0,0.5);
+  border-radius:24px;
+  position:relative;
+  overflow:hidden;
+}
+.glass::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(120% 80% at 0% 0%, rgba(255,255,255,0.18), transparent 50%);
+}
+.glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg, transparent 60%, rgba(0,255,209,0.05));
+}
+
+/* ---------- ENTRY SCENE ---------- */
+.entry-card{
+  width:min(640px, 92vw);
+  padding:56px 44px;
+  text-align:left;
+  animation:floatCard 6s ease-in-out infinite;
+}
+@keyframes floatCard{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.bracket{display:flex;align-items:center;gap:14px;color:var(--ink-dim);font-size:12px;letter-spacing:.4em;text-transform:uppercase;margin-bottom:28px}
+.bracket .dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.85)}}
+.kicker{color:var(--cyan);font-family:'Space Mono';font-size:13px;letter-spacing:.5em;text-transform:uppercase;margin-bottom:18px;opacity:.85}
+.entry-title{
+  font-family:'Major Mono Display','Space Mono',monospace;
+  font-size:clamp(40px,7vw,84px);
+  line-height:.95;
+  letter-spacing:-.02em;
+  color:#fff;
+  text-shadow:0 0 30px rgba(0,255,209,0.18);
+}
+.entry-title .brace{color:var(--cyan)}
+.entry-title .q{color:var(--magenta);display:inline-block;animation:flicker 3.4s infinite}
+@keyframes flicker{0%,18%,22%,25%,53%,57%,100%{opacity:1}19%,21%,55%{opacity:.35}}
+.entry-sub{
+  margin-top:22px;color:var(--ink-dim);font-size:13px;line-height:1.7;max-width:480px;letter-spacing:.04em;
+}
+.entry-cta{
+  margin-top:36px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+}
+.enter-btn{
+  --h:54px;
+  position:relative;height:var(--h);padding:0 28px;
+  background:transparent;border:1px solid var(--stroke);border-radius:999px;
+  color:#fff;font-family:'Space Mono';font-size:12px;letter-spacing:.4em;text-transform:uppercase;cursor:pointer;
+  display:inline-flex;align-items:center;gap:14px;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), background .35s ease, border-color .35s ease, color .35s ease, box-shadow .35s ease;
+  overflow:hidden;
+}
+.enter-btn::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--magenta));
+  opacity:0;transition:opacity .35s ease;z-index:-1;
+}
+.enter-btn:hover{transform:translateY(-2px);border-color:transparent;color:#04050a;box-shadow:0 18px 40px -10px rgba(0,255,209,.35)}
+.enter-btn:hover::before{opacity:1}
+.enter-btn .arrow{display:inline-block;transition:transform .35s ease}
+.enter-btn:hover .arrow{transform:translateX(6px)}
+.hint{color:var(--ink-dim);font-size:11px;letter-spacing:.3em;text-transform:uppercase}
+
+/* corners */
+.corners span{position:absolute;width:18px;height:18px;border:1px solid var(--cyan);opacity:.7}
+.corners .tl{top:14px;left:14px;border-right:none;border-bottom:none}
+.corners .tr{top:14px;right:14px;border-left:none;border-bottom:none}
+.corners .bl{bottom:14px;left:14px;border-right:none;border-top:none}
+.corners .br{bottom:14px;right:14px;border-left:none;border-top:none}
+
+/* ---------- MAIN SCENE ---------- */
+#mainScene{align-items:flex-start;justify-content:flex-start;flex-direction:column;padding:0;overflow-y:auto}
+#mainScene .inner{width:100%;min-height:100%;padding:36px clamp(20px,5vw,72px) 80px;display:flex;flex-direction:column;gap:48px}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px;font-family:'Major Mono Display';font-size:22px;letter-spacing:.04em;color:#fff}
+.brand .glyph{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--cyan),var(--violet));display:grid;place-items:center;color:#04050a;font-family:'Space Mono';font-weight:700;font-size:14px;box-shadow:0 8px 30px -10px var(--cyan)}
+.nav{display:flex;gap:8px;flex-wrap:wrap}
+.nav a{color:var(--ink-dim);text-decoration:none;font-size:11px;letter-spacing:.4em;text-transform:uppercase;padding:10px 14px;border-radius:999px;border:1px solid transparent;transition:.3s}
+.nav a:hover{color:#fff;border-color:var(--stroke);background:var(--glass)}
+.status{display:flex;align-items:center;gap:10px;color:var(--cyan);font-size:11px;letter-spacing:.3em;text-transform:uppercase}
+.status .pulse{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:pulse 1.6s infinite}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.4fr .9fr;gap:32px;align-items:stretch}
+@media(max-width:900px){.hero{grid-template-columns:1fr}}
+.hero-left{padding:44px 40px;display:flex;flex-direction:column;justify-content:space-between;gap:28px;min-height:340px}
+.hero-tag{color:var(--cyan);font-size:11px;letter-spacing:.5em;text-transform:uppercase}
+.hero-title{
+  font-family:'Major Mono Display','Space Mono',monospace;
+  font-size:clamp(40px,5.5vw,72px);
+  line-height:.96;color:#fff;letter-spacing:-.01em;
+}
+.hero-title .accent{color:var(--cyan)}
+.hero-title .punct{color:var(--magenta)}
+.hero-desc{color:var(--ink-dim);font-size:14px;line-height:1.7;max-width:60ch}
+.hero-meta{display:flex;flex-wrap:wrap;gap:16px;color:var(--ink-dim);font-size:11px;letter-spacing:.3em;text-transform:uppercase}
+.hero-meta span b{color:#fff;font-weight:400;margin-right:6px}
+
+.hero-right{padding:32px;display:flex;flex-direction:column;gap:18px}
+.term-head{display:flex;align-items:center;gap:8px;color:var(--ink-dim);font-size:11px;letter-spacing:.3em;text-transform:uppercase}
+.term-head .lights{display:flex;gap:6px}
+.term-head .lights i{width:10px;height:10px;border-radius:50%;background:#ff5f56}
+.term-head .lights i:nth-child(2){background:#ffbd2e}
+.term-head .lights i:nth-child(3){background:#27c93f}
+.term{font-family:'Space Mono';font-size:12.5px;line-height:1.9;color:var(--ink);min-height:170px}
+.term .p{color:var(--cyan)}
+.term .c{color:var(--ink-dim)}
+.term .o{color:#fff}
+.term .ok{color:var(--cyan)}
+.caret{display:inline-block;width:8px;height:14px;background:var(--cyan);margin-left:2px;vertical-align:middle;animation:caret 1s steps(1) infinite;box-shadow:0 0 10px var(--cyan)}
+@keyframes caret{50%{opacity:0}}
+
+/* section header */
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--stroke-soft);padding-bottom:18px}
+.section-head h2{font-family:'Major Mono Display';font-size:clamp(26px,3.4vw,40px);color:#fff;letter-spacing:-.01em}
+.section-head h2 .num{color:var(--cyan);margin-right:14px;font-size:.7em;vertical-align:top}
+.section-head p{color:var(--ink-dim);font-size:12px;letter-spacing:.3em;text-transform:uppercase;max-width:340px;text-align:right}
+
+/* search bar */
+.search-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;border-radius:999px}
+.search-field{flex:1;min-width:240px;display:flex;align-items:center;gap:12px}
+.search-field svg{flex:none;color:var(--cyan);opacity:.85}
+.search-input{
+  flex:1;background:transparent;border:none;outline:none;color:#fff;
+  font-family:'Space Mono';font-size:13px;letter-spacing:.06em;
+  padding:6px 0;caret-color:var(--cyan);
+}
+.search-input::placeholder{color:var(--ink-dim);letter-spacing:.2em;text-transform:uppercase;font-size:11px}
+.search-clear{
+  background:transparent;border:1px solid var(--stroke);color:var(--ink-dim);
+  width:30px;height:30px;border-radius:50%;cursor:pointer;display:grid;place-items:center;
+  font-family:'Space Mono';font-size:14px;line-height:1;transition:.3s;
+  opacity:0;pointer-events:none;
+}
+.search-clear.on{opacity:1;pointer-events:auto}
+.search-clear:hover{color:#fff;border-color:var(--magenta);background:rgba(255,42,109,.12)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  background:transparent;border:1px solid var(--stroke);color:var(--ink-dim);
+  font-family:'Space Mono';font-size:10px;letter-spacing:.3em;text-transform:uppercase;
+  padding:8px 14px;border-radius:999px;cursor:pointer;transition:.3s;
+}
+.chip:hover{color:#fff;border-color:var(--cyan)}
+.chip.active{background:var(--cyan);color:#04050a;border-color:var(--cyan);box-shadow:0 8px 20px -8px var(--cyan)}
+.count{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-dim)}
+.count b{color:var(--cyan);font-weight:400}
+
+/* empty state */
+.empty{
+  grid-column:1/-1;
+  padding:60px 30px;text-align:center;
+  border:1px dashed var(--stroke);border-radius:24px;
+  color:var(--ink-dim);font-size:12px;letter-spacing:.3em;text-transform:uppercase;
+}
+.empty .x{color:var(--magenta);font-size:14px;margin-bottom:10px;letter-spacing:.5em}
+
+/* card grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px}
+.card{
+  padding:26px 24px 22px;
+  display:flex;flex-direction:column;gap:16px;
+  cursor:pointer;
+  transition:transform .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s ease, border-color .5s ease;
+  opacity:0;transform:translateY(20px);
+  animation:reveal .8s cubic-bezier(.2,.8,.2,1) forwards;
+}
+@keyframes reveal{to{opacity:1;transform:translateY(0)}}
+.card:hover{transform:translateY(-6px);border-color:rgba(0,255,209,0.55);box-shadow:0 30px 60px -20px rgba(0,255,209,0.18), 0 18px 30px -10px rgba(0,0,0,0.55)}
+.card .ico{
+  width:46px;height:46px;border-radius:12px;
+  display:grid;place-items:center;
+  background:rgba(0,255,209,0.08);border:1px solid rgba(0,255,209,0.25);
+  color:var(--cyan);font-family:'Space Mono';font-weight:700;font-size:14px;
+  transition:.4s;
+}
+.card:hover .ico{background:var(--cyan);color:#04050a;box-shadow:0 0 30px var(--cyan)}
+.card .h{display:flex;flex-direction:column;gap:6px}
+.card .h .tag{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--ink-dim)}
+.card .h .title{font-family:'Major Mono Display';font-size:20px;color:#fff;letter-spacing:-.01em;line-height:1.15}
+.card .desc{font-size:12.5px;line-height:1.7;color:var(--ink-dim);flex:1}
+.card .foot{display:flex;align-items:center;justify-content:space-between;border-top:1px dashed var(--stroke-soft);padding-top:14px}
+.card .meta{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-dim)}
+.dl-btn{
+  background:transparent;border:1px solid var(--stroke);color:#fff;
+  font-family:'Space Mono';font-size:10px;letter-spacing:.3em;text-transform:uppercase;
+  padding:10px 14px;border-radius:999px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:10px;
+  transition:.35s;
+}
+.dl-btn:hover{background:var(--cyan);color:#04050a;border-color:var(--cyan);box-shadow:0 10px 24px -8px var(--cyan)}
+.dl-btn .ar{transition:.35s}
+.dl-btn:hover .ar{transform:translateY(2px)}
+
+/* footer */
+.foot-bar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;color:var(--ink-dim);font-size:10px;letter-spacing:.4em;text-transform:uppercase;border-top:1px solid var(--stroke-soft);padding-top:24px}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+  padding:14px 22px;border-radius:999px;
+  background:rgba(0,255,209,0.12);border:1px solid rgba(0,255,209,0.4);
+  color:var(--cyan);font-family:'Space Mono';font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+  backdrop-filter:blur(20px);
+  opacity:0;pointer-events:none;
+  transition:.5s cubic-bezier(.2,.8,.2,1);z-index:50;
+  box-shadow:0 20px 40px -10px rgba(0,255,209,.3);
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* custom scrollbar */
+#mainScene::-webkit-scrollbar{width:8px}
+#mainScene::-webkit-scrollbar-track{background:transparent}
+#mainScene::-webkit-scrollbar-thumb{background:rgba(0,255,209,.15);border-radius:8px}
+#mainScene::-webkit-scrollbar-thumb:hover{background:rgba(0,255,209,.3)}
+
+/* responsive entry */
+@media(max-width:520px){
+  .entry-card{padding:40px 28px}
+  .entry-cta{flex-direction:column;align-items:stretch}
+  .enter-btn{justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- Animated background layer (shared) -->
+<div class="bg-stack" aria-hidden="true">
+  <canvas class="matrix" id="matrix"></canvas>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="scan"></div>
+  <div class="grain"></div>
+</div>
+
+<!-- ============== ENTRY SCENE ============== -->
+<section class="scene" id="entryScene" data-testid="entry-scene">
+  <div class="glass entry-card" data-testid="entry-card">
+    <div class="corners"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div>
+    <h1 class="entry-title">
+      BY OBSCURA<br/>
+      <span class="brace">{</span><span class="q">?</span><span class="brace">}</span>
+    </h1>
+    <div class="entry-cta">
+      <button class="enter-btn" id="enterBtn" data-testid="enter-button">
+        <span>Initiate</span><span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============== MAIN SCENE ============== -->
+<section class="scene hidden enter-anim" id="mainScene" data-testid="main-scene">
+  <div class="inner">
+
+    <header class="topbar">
+      <div class="brand"><div class="glyph">0x</div><span>OBSCURA</span></div>
+      <nav class="nav">
+        <a href="#vault" data-testid="nav-vault">Vault</a>
+        <a href="#about" data-testid="nav-about">Doctrine</a>
+        <a href="#manifesto" data-testid="nav-manifesto">Manifesto</a>
+      </nav>
+      <div class="status"><span class="pulse"></span><span>node online</span></div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="glass hero-left">
+        <div class="hero-tag">offensive</div>
+        <h1 class="hero-title">
+          HACKING<br/>
+          WITH <span class="accent">OBSCURA</span><span class="punct">.</span>
+        </h1>
+        <p class="hero-desc">
+        </p>
+        <div class="hero-meta">
+          </div>
+      </div>
+      <div class="glass hero-right">
+        <div class="term-head">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <span style="margin-left:8px">about me</span>
+        </div>
+        <div class="term" id="term">
+          <div><span class="p">obscura@vault</span>:<span class="c">~</span>$ <span class="o">whoami</span></div>
+          <div class="ok">&gt; dasa krishna chaitanya</div>
+          <div><span class="p">obscura@vault</span>:<span class="c">~</span>$ <span class="o">cat aboutme.txt</span></div>
+          <div class="ok">&gt; hosting OBSCURA{?}</div>
+          <div><span class="p">obscura@vault</span>:<span class="c">~</span>$ <span class="o">ls -la /vault/*.pdf</span></div>
+          <div class="c">&gt; ready. scroll down to extract.<span class="caret"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VAULT GRID -->
+    <section id="vault" style="display:flex;flex-direction:column;gap:24px">
+      <div class="section-head">
+        <h2><span class="num">/01</span>THE VAULT</h2>
+        <p>click any dossier to extract its pdf</p>
+      </div>
+
+      <!-- search + filter bar -->
+      <div class="glass search-wrap" data-testid="search-bar">
+        <div class="search-field">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="searchInput" class="search-input" type="text" placeholder="search dossiers // try: web, wireless, recon..." data-testid="search-input" autocomplete="off"/>
+          <button class="search-clear" id="searchClear" data-testid="search-clear" aria-label="clear search">×</button>
+        </div>
+        <div class="chips" id="chips" data-testid="filter-chips">
+          <button class="chip active" data-phase="all" data-testid="chip-all">All</button>
+          <button class="chip" data-phase="recon" data-testid="chip-recon">Recon</button>
+          <button class="chip" data-phase="offense" data-testid="chip-offense">Offense</button>
+          <button class="chip" data-phase="human" data-testid="chip-human">Human</button>
+          <button class="chip" data-phase="defense" data-testid="chip-defense">Defense</button>
+        </div>
+        <div class="count" data-testid="result-count"><b id="resultCount">08</b> / 08 dossiers</div>
+      </div>
+
+      <div class="grid" id="cards"></div>
+    </section>
+
+    <!-- DOCTRINE -->
+    <section id="about" style="display:flex;flex-direction:column;gap:24px">
+      <div class="section-head">
+        <h2><span class="num">/02</span>DOCTRINE</h2>
+        <p>the rules of engagement</p>
+      </div>
+      <div class="grid">
+        <div class="glass card" style="cursor:default;animation-delay:.05s">
+          <div class="ico">01</div>
+          <div class="h"><span class="tag">authorize</span><span class="title">Permission First</span></div>
+          <p class="desc">No test without written scope. Every probe begins with a signature, not a payload.</p>
+        </div>
+        <div class="glass card" style="cursor:default;animation-delay:.15s">
+          <div class="ico">02</div>
+          <div class="h"><span class="tag">document</span><span class="title">Record Everything</span></div>
+          <p class="desc">Logs, hashes, timestamps. If it isn't reproducible it didn't happen.</p>
+        </div>
+        <div class="glass card" style="cursor:default;animation-delay:.25s">
+          <div class="ico">03</div>
+          <div class="h"><span class="tag">disclose</span><span class="title">Responsible Reporting</span></div>
+          <p class="desc">Find it, prove it, hand it back to defenders before anyone else sees it.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MANIFESTO -->
+    <section id="manifesto" class="glass" style="padding:44px 40px;display:flex;flex-direction:column;gap:18px">
+      <div class="hero-tag">// manifesto</div>
+      <h2 style="font-family:'Major Mono Display';font-size:clamp(24px,3vw,36px);color:#fff;line-height:1.2">
+        we hack systems<br/><span style="color:var(--cyan)">to save</span> the people inside them.
+      </h2>
+      <p class="hero-desc" style="max-width:70ch">
+        Obscura is not a brand. It is a discipline. We study attacker mindset
+        to build defender muscle. Every PDF in this vault was written by
+        practitioners — for practitioners — under one rule:
+        <b style="color:#fff">do no harm, leave a stronger system behind.</b>
+      </p>
+    </section>
+
+    <div class="foot-bar">
+      <span>obscura</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- Toast -->
+<div class="toast" id="toast" data-testid="toast">extracting dossier...</div>
+
+<script>
+/* ==================== MATRIX RAIN ==================== */
+(function(){
+  const c = document.getElementById('matrix');
+  const ctx = c.getContext('2d');
+  let w,h,cols,drops;
+  const chars='アァカサタナハマヤラワabcdef0123456789{}<>[]/$#@!*+-=:;'.split('');
+  function size(){
+    w = c.width = window.innerWidth;
+    h = c.height = window.innerHeight;
+    cols = Math.floor(w/16);
+    drops = Array(cols).fill(0).map(()=>Math.random()*h/16);
+  }
+  size();
+  window.addEventListener('resize',size);
+  function draw(){
+    ctx.fillStyle='rgba(4,5,10,0.08)';
+    ctx.fillRect(0,0,w,h);
+    ctx.font='14px "Space Mono", monospace';
+    for(let i=0;i<cols;i++){
+      const ch = chars[Math.floor(Math.random()*chars.length)];
+      const x = i*16;
+      const y = drops[i]*16;
+      ctx.fillStyle = Math.random()>0.975 ? '#ff2a6d' : '#00ffd1';
+      ctx.fillText(ch,x,y);
+      if(y>h && Math.random()>0.975) drops[i]=0;
+      drops[i] += 0.6 + Math.random()*0.4;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ==================== SCENE TRANSITION ==================== */
+const entryScene = document.getElementById('entryScene');
+const mainScene  = document.getElementById('mainScene');
+const enterBtn   = document.getElementById('enterBtn');
+
+function enterVault(){
+  if(entryScene.classList.contains('hidden')) return;
+  entryScene.classList.add('hidden');
+  mainScene.classList.remove('hidden');
+  // trigger enter animation
+  requestAnimationFrame(()=>{
+    mainScene.classList.remove('enter-anim');
+  });
+  document.body.style.overflow='auto';
+  // allow scroll on main scene
+  mainScene.style.overflowY='auto';
+}
+enterBtn.addEventListener('click', enterVault);
+document.addEventListener('keydown', e=>{ if(e.key==='Enter' && !entryScene.classList.contains('hidden')) enterVault(); });
+
+/* ==================== DOSSIERS DATA ==================== */
+const dossiers = [
+  { id:'01', code:'RCN', title:'Reconnaissance', tag:'phase 1', size:'1.2 MB', cat:'recon',
+    desc:'Passive & active intel gathering. OSINT, DNS, subdomain mapping, footprinting targets without leaving prints.',
+    chapters:[
+      ['1. Passive Reconnaissance','Search engines, public records, certificate transparency, archived snapshots.'],
+      ['2. OSINT Toolkit','theHarvester, Maltego, Shodan, Censys, Sherlock — workflow & pivots.'],
+      ['3. DNS & Subdomain Mapping','Zone transfers, brute force with wordlists, passive DNS sources.'],
+      ['4. Operational Discipline','Burner identities, traffic shaping, leaving no fingerprints.'],
+      ['5. Reporting the Surface','Turning reconnaissance into a defender-ready attack surface map.']
+    ]},
+  { id:'02', code:'SCN', title:'Network Scanning', tag:'phase 2', size:'1.4 MB', cat:'recon',
+    desc:'Port discovery, service fingerprinting and vulnerability identification with Nmap and friends.',
+    chapters:[
+      ['1. Host Discovery','ICMP, ARP sweeps, TCP/UDP ping, stealth alternatives.'],
+      ['2. Port Scanning Techniques','SYN, FIN, XMAS, idle, version detection — when to use what.'],
+      ['3. Service & OS Fingerprinting','Banner grabbing, Nmap NSE scripts, masscan tuning.'],
+      ['4. Vulnerability Scanning','OpenVAS, Nessus, Nuclei — separating signal from noise.'],
+      ['5. Evasion','IDS-aware scanning, fragmentation, timing templates.']
+    ]},
+  { id:'03', code:'WEB', title:'Web Exploitation', tag:'phase 3', size:'1.8 MB', cat:'offense',
+    desc:'OWASP Top 10 in practice — injection, broken access control, SSRF, deserialization and beyond.',
+    chapters:[
+      ['1. Mapping the App','Spidering, parameter discovery, auth flows, business logic.'],
+      ['2. Injection Family','SQLi, NoSQLi, command injection, template injection — payload crafting.'],
+      ['3. Broken Access Control','IDOR, privilege escalation, JWT pitfalls.'],
+      ['4. SSRF & Deserialization','Cloud metadata abuse, gadget chains, common framework sinks.'],
+      ['5. Reporting Web Bugs','Repro steps, impact narrative, remediation guidance.']
+    ]},
+  { id:'04', code:'WLN', title:'Wireless Hacking', tag:'phase 4', size:'1.1 MB', cat:'offense',
+    desc:'Wi-Fi protocols, handshake capture, WPA2/WPA3 attacks, rogue APs and Bluetooth recon.',
+    chapters:[
+      ['1. Wireless Fundamentals','802.11 frames, channels, monitor mode, antennas.'],
+      ['2. WPA2/WPA3 Attacks','Handshake capture, PMKID, dictionary & rule-based cracking.'],
+      ['3. Rogue Access Points','Evil twin, captive portals, client de-auth dynamics.'],
+      ['4. Bluetooth & BLE','Discovery, sniffing, pairing weaknesses, GATT enumeration.'],
+      ['5. Defending the Air','Detection, segmentation, monitoring strategies.']
+    ]},
+  { id:'05', code:'SOC', title:'Social Engineering', tag:'phase 5', size:'0.9 MB', cat:'human',
+    desc:'Human-layer attacks: phishing, vishing, pretexting and the psychology behind every click.',
+    chapters:[
+      ['1. Psychology of Influence','Authority, urgency, reciprocity, scarcity — Cialdini in a red-team lens.'],
+      ['2. Phishing Engineering','Domain selection, lure crafting, payload delivery, infrastructure ops.'],
+      ['3. Vishing & Pretexting','Scripts, persona building, voice & SMS channels.'],
+      ['4. Physical SE','Tailgating, badge cloning, USB drops, on-site reconnaissance.'],
+      ['5. Building Defense Training','Simulations, metrics, behavior change programs.']
+    ]},
+  { id:'06', code:'PRV', title:'Privilege Escalation', tag:'phase 6', size:'1.3 MB', cat:'offense',
+    desc:'From foothold to root — Linux & Windows escalation techniques, kernel bugs and misconfigs.',
+    chapters:[
+      ['1. Enumeration First','LinPEAS, WinPEAS, manual checklists, system context.'],
+      ['2. Linux Escalation','SUID, capabilities, cron, PATH abuse, sudo misconfig.'],
+      ['3. Windows Escalation','Token impersonation, service abuse, unquoted paths, GPP.'],
+      ['4. Kernel Exploits','When (and when not) to use them — risk vs. reward.'],
+      ['5. Persistence Ethics','What red teams document, what defenders need to know.']
+    ]},
+  { id:'07', code:'FRN', title:'Digital Forensics', tag:'phase 7', size:'1.5 MB', cat:'defense',
+    desc:'Memory, disk and network forensics. Chain of custody, timeline reconstruction, IOC hunting.',
+    chapters:[
+      ['1. Evidence Handling','Imaging, hashing, chain of custody, courtroom-grade discipline.'],
+      ['2. Disk Forensics','Filesystem artifacts, MFT, journaling, deleted file recovery.'],
+      ['3. Memory Forensics','Volatility workflows, process tree, injected code detection.'],
+      ['4. Network Forensics','PCAP triage, NetFlow, beacon detection, C2 signatures.'],
+      ['5. Timeline & Reporting','Building a defensible narrative from raw artifacts.']
+    ]},
+  { id:'08', code:'CRY', title:'Cryptography', tag:'phase 8', size:'1.0 MB', cat:'defense',
+    desc:'Hashing, symmetric & asymmetric crypto, PKI, common protocol mistakes and modern best practice.',
+    chapters:[
+      ['1. Primitives','Hashes, MACs, AEAD ciphers — what each guarantees.'],
+      ['2. Symmetric Crypto','AES modes, IV/nonce mistakes, padding oracles.'],
+      ['3. Asymmetric & PKI','RSA, ECC, certificate chains, common pitfalls.'],
+      ['4. Protocols in Practice','TLS, SSH, JWT — interoperability traps & secure defaults.'],
+      ['5. Post-Quantum Outlook','What is changing, what to prepare for in 2026+.']
+    ]}
+];
+
+/* ==================== RENDER + FILTER ==================== */
+const grid = document.getElementById('cards');
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const chips = document.querySelectorAll('#chips .chip');
+const resultCount = document.getElementById('resultCount');
+let activePhase = 'all';
+let query = '';
+
+function render(){
+  const q = query.trim().toLowerCase();
+  const list = dossiers.filter(d=>{
+    const phaseOk = activePhase==='all' || d.cat===activePhase;
+    if(!phaseOk) return false;
+    if(!q) return true;
+    return (
+      d.title.toLowerCase().includes(q) ||
+      d.desc.toLowerCase().includes(q)  ||
+      d.code.toLowerCase().includes(q)  ||
+      d.tag.toLowerCase().includes(q)   ||
+      d.cat.toLowerCase().includes(q)
+    );
+  });
+
+  grid.innerHTML = '';
+  if(list.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.setAttribute('data-testid','empty-state');
+    empty.innerHTML = `<div class="x">// no match //</div>no dossiers found for "<span style="color:#fff">${escapeHtml(query)}</span>"`;
+    grid.appendChild(empty);
+  } else {
+    list.forEach((d,i)=>{
+      const card = document.createElement('article');
+      card.className = 'glass card';
+      card.style.animationDelay = (i*0.05)+'s';
+      card.setAttribute('data-testid','dossier-card-'+d.id);
+      card.innerHTML = `
+        <div class="ico">${d.code}</div>
+        <div class="h">
+          <span class="tag">${d.tag} // ${d.id}</span>
+          <span class="title">${d.title}</span>
+        </div>
+        <p class="desc">${d.desc}</p>
+        <div class="foot">
+          <span class="meta">PDF // ${d.size}</span>
+          <button class="dl-btn" data-id="${d.id}" data-testid="download-btn-${d.id}">
+            <span>Extract</span><span class="ar">↓</span>
+          </button>
+        </div>
+      `;
+      card.addEventListener('click', e=>{
+        if(e.target.closest('.dl-btn')) return;
+        downloadDossier(d);
+      });
+      card.querySelector('.dl-btn').addEventListener('click', ()=>downloadDossier(d));
+      grid.appendChild(card);
+    });
+  }
+
+  resultCount.textContent = String(list.length).padStart(2,'0');
+  searchClear.classList.toggle('on', query.length > 0);
+}
+
+function escapeHtml(s){return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+searchInput.addEventListener('input', e=>{ query = e.target.value; render(); });
+searchClear.addEventListener('click', ()=>{ query=''; searchInput.value=''; searchInput.focus(); render(); });
+chips.forEach(c=>c.addEventListener('click', ()=>{
+  chips.forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+  activePhase = c.dataset.phase;
+  render();
+}));
+
+render();
+
+/* ==================== TOAST ==================== */
+const toast = document.getElementById('toast');
+let toastTimer;
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>toast.classList.remove('on'), 2400);
+}
+
+/* ==================== PDF GENERATION ==================== */
+function downloadDossier(d){
+  showToast(`extracting ${d.title}...`);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+
+  // ----- COVER -----
+  doc.setFillColor(4,5,10);
+  doc.rect(0,0,W,H,'F');
+  // accent bar
+  doc.setFillColor(0,255,209);
+  doc.rect(0,0,8,H,'F');
+  doc.setFillColor(255,42,109);
+  doc.rect(W-8,0,8,H,'F');
+
+  doc.setTextColor(0,255,209);
+  doc.setFont('courier','normal');
+  doc.setFontSize(10);
+  doc.text(`// OBSCURA VAULT  //  DOSSIER ${d.id}  //  ${d.code}`, 40, 60);
+
+  doc.setTextColor(255,255,255);
+  doc.setFont('courier','bold');
+  doc.setFontSize(34);
+  const titleLines = doc.splitTextToSize(d.title.toUpperCase(), W-120);
+  doc.text(titleLines, 40, 180);
+
+  doc.setFont('courier','normal');
+  doc.setFontSize(11);
+  doc.setTextColor(180,200,220);
+  const descLines = doc.splitTextToSize(d.desc, W-120);
+  doc.text(descLines, 40, 230);
+
+  doc.setDrawColor(0,255,209);
+  doc.setLineWidth(0.6);
+  doc.line(40, H-160, W-40, H-160);
+
+  doc.setTextColor(0,255,209);
+  doc.setFontSize(9);
+  doc.text('CLASSIFICATION', 40, H-140);
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(12);
+  doc.text('Educational // Ethical Use Only', 40, H-122);
+
+  doc.setTextColor(0,255,209);
+  doc.setFontSize(9);
+  doc.text('EDITION', 40, H-95);
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(12);
+  doc.text('v2.6 — 2026', 40, H-77);
+
+  doc.setTextColor(255,42,109);
+  doc.setFontSize(9);
+  doc.text('// END COVER //', 40, H-40);
+
+  // ----- CONTENT PAGES -----
+  d.chapters.forEach((ch, idx)=>{
+    doc.addPage();
+    doc.setFillColor(250,250,252);
+    doc.rect(0,0,W,H,'F');
+
+    // top stripe
+    doc.setFillColor(4,5,10);
+    doc.rect(0,0,W,50,'F');
+    doc.setTextColor(0,255,209);
+    doc.setFont('courier','normal');
+    doc.setFontSize(9);
+    doc.text(`OBSCURA / ${d.code} / ${d.title.toUpperCase()}`, 40, 32);
+    doc.setTextColor(255,255,255);
+    doc.text(`PAGE ${idx+2}`, W-80, 32);
+
+    // chapter title
+    doc.setTextColor(4,5,10);
+    doc.setFont('courier','bold');
+    doc.setFontSize(20);
+    const chTitle = doc.splitTextToSize(ch[0], W-80);
+    doc.text(chTitle, 40, 110);
+
+    doc.setDrawColor(0,255,209);
+    doc.setLineWidth(2);
+    doc.line(40, 130, 90, 130);
+
+    // chapter body
+    doc.setFont('courier','normal');
+    doc.setFontSize(11);
+    doc.setTextColor(40,50,70);
+    const body = doc.splitTextToSize(ch[1], W-80);
+    doc.text(body, 40, 170);
+
+    // expanded notes
+    doc.setFontSize(10);
+    doc.setTextColor(80,90,110);
+    const notes = [
+      '',
+      'KEY POINTS',
+      '- Always operate within the scope defined by the engagement letter.',
+      '- Document every command, output and timestamp during the procedure.',
+      '- Validate findings in a controlled lab before final reporting.',
+      '- Map findings to MITRE ATT&CK and defender-actionable mitigations.',
+      '',
+      'COMMON PITFALLS',
+      '- Confirmation bias when interpreting tool output.',
+      '- Skipping baseline measurements before introducing changes.',
+      '- Treating automated scanners as ground truth without verification.',
+      '',
+      'PRACTICE LAB',
+      '- Spin up an isolated VM environment (e.g. nested virtualization).',
+      '- Reproduce each technique twice: once attack, once defense.',
+      '- Capture artifacts (pcaps, logs, screenshots) for your knowledge base.'
+    ];
+    doc.text(notes, 40, 220);
+
+    // footer
+    doc.setDrawColor(220,224,234);
+    doc.line(40, H-50, W-40, H-50);
+    doc.setTextColor(120,130,150);
+    doc.setFontSize(8);
+    doc.text('Obscura Vault // educational use only // 2026', 40, H-32);
+    doc.text(`Dossier ${d.id} of 08`, W-130, H-32);
+  });
+
+  // ----- BACK COVER -----
+  doc.addPage();
+  doc.setFillColor(4,5,10);
+  doc.rect(0,0,W,H,'F');
+  doc.setFillColor(0,255,209);
+  doc.rect(0,H-8,W,8,'F');
+  doc.setTextColor(0,255,209);
+  doc.setFont('courier','normal');
+  doc.setFontSize(10);
+  doc.text('// END OF DOSSIER //', 40, 60);
+  doc.setTextColor(255,255,255);
+  doc.setFont('courier','bold');
+  doc.setFontSize(22);
+  doc.text('STAY CURIOUS.', 40, 140);
+  doc.text('STAY ETHICAL.', 40, 175);
+  doc.setFont('courier','normal');
+  doc.setFontSize(11);
+  doc.setTextColor(180,200,220);
+  doc.text('Continue your training in the next dossier of the Obscura Vault.', 40, 215);
+
+  const fname = `obscura_${d.id}_${d.title.toLowerCase().replace(/\s+/g,'_')}.pdf`;
+  doc.save(fname);
+}
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
